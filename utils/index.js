@@ -276,6 +276,9 @@ module.exports = {
       if (item === undefined  || item === null) {
         item = ''
       }
+      if (pre === undefined  || pre === null) {
+        pre = ''
+      }
       if (pre.match(/\/+$/)) {
         pre = pre.replace(/\/+$/, '')
       } 
@@ -306,5 +309,13 @@ module.exports = {
       }
     }
     return messages
+  },
+  delKeys(data) {
+    const keys = [...arguments].slice(1)
+    keys.forEach(item => {
+      if (data[item] !== undefined) {
+        delete data[item]
+      }
+    })
   }
 }

@@ -6,6 +6,7 @@ var logger = require('morgan');
 const middle = require('./middleware/')
 const store = require('./store.js')
 var indexRouter = require('./routes/index');
+const mockServer = require('./controller/apis.js').mockServer
 var app = express();
 const session = require('express-session');
 app.use(logger('dev'));
@@ -34,4 +35,5 @@ app.use(session({
 }))
 app.use(middle.auth);
 app.use('/api', indexRouter);
+app.use('/mock', mockServer);
 module.exports = app;

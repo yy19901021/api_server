@@ -18,6 +18,10 @@
 ### 技术选型
   - React前端页面开发
   - node + express 实现服务端的开发
-
+### mock服务启动（项目默认是开启MOCK服务）
+  -前端项目配置： 前端项目启动webpack-server的proxy，在开发环境下配置反向代理，代理到api-server服务器，请求地址必须以/mock开头（http://ip:port(/mock)(/weatherApi: 实际api地址)
+  - 后台接口404时，server返回预定义的校验数据
+  - mock服务默认开启并且会对进行校验, 关闭校验（前端需要在http请求时增加query参数{withCheck: 0}）
+  - 关闭mock数据返回: 前端需要在http请求时增加query参数{withMock: 0}
 ### 项目预览
    -[http://api.myjsblog.cn](http://api.myjsblog.cn)

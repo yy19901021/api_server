@@ -207,6 +207,55 @@ const sendApi = function (req, res) {
     }
   })
 }
+
+// api mock 服务
+const mockServer = function(req, res, next) {
+  const url = req.url.split('?')[0]
+  const {withCheck, withMock} = req.query
+  const method = req.method
+  const params = req.query
+  Tools.delKeys(params, 'withCheck', 'withMock')
+  const body = req.body
+  const lastHost = url.match(/\/([^\/]+)(\/)?$/)
+  if (!lastHost) {
+    res.json({code: 200, msg: 'mock 服务错误！'})
+  } else {
+    dbService.queryMockModel({path: lastHost[1], method: method.toLowerCase()}, function(result){
+      const requestUrl = url.replace('/mock', '').replace(/\/$/, '')
+      const filterModel = result.filter(i=>{
+        return Tools.formatUrl(i.base_url, i.path) == requestUrl
+      })
+      if (filterModel.length == 0) {
+        res.json({code: 200, msg: `在API管理项目中不存在${url}接口，请前往项目中添加该接口`})
+      } else {
+        const {result, host, base_url, path} = filterModel[0]
+        AXIOS_INSTANCE.request({
+          method,
+          url: Tools.formatUrl(host, base_url, path),
+          data:body,
+          params: params,
+        }).then((data) => {
+          const warnMsg = withCheck == 0 || withMock == 0 ? [] : Tools.isEqual(result, data)
+          if (warnMsg.length === 0) {
+            res.json({...data})
+          } else {
+            res.json({code: CODE.TEST_WARN, msg: warnMsg.join(';')})
+          }
+        }).catch((error) => {
+          if (error.response) {
+            if (error.response.status === 404 && withMock != 0) {
+              res.json({...Tools.parseJson(result)})
+            }else {
+              res.status(error.response.status).json({data: error.response.data})
+            }
+          } else {
+            res.status(404).json({data: error})
+          }
+        })
+      }
+    })
+  }
+}
 module.exports = {
   modelApis,
   addOrUpdate,
@@ -215,5 +264,6 @@ module.exports = {
   testModelApi,
   getTestMessage,
   sendApi,
-  deleteApi
+  deleteApi,
+  mockServer
 }

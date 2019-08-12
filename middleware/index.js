@@ -8,6 +8,8 @@ const auth = function (req, res, next) {
     next()
   }
 }
+
+
 module.exports = {
   auth
 }
