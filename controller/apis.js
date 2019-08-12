@@ -244,7 +244,8 @@ const mockServer = function(req, res, next) {
         }).catch((error) => {
           if (error.response) {
             if (error.response.status === 404 && withMock != 0) {
-              res.json({...Tools.parseJson(result)})
+              console.log(result)
+              res.json({...Tools.mockDataByResult(result)})
             }else {
               res.status(error.response.status).json({data: error.response.data})
             }

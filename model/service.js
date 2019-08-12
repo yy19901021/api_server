@@ -222,7 +222,7 @@ const queryModelApiForTest = function(id, callback) {
 // queryMock url
 
 const queryMockModel = function({path, method}, callback) {
-  const sql = Query().keys('apis.*', 'models.host', 'models.base_url').table('apis', 'models').where(`apis.method = '${method}'`).and('models.is_del != 1').and(`apis.path like '%${path}'`).or(`apis.path like '%${path}/'`).toEnd()
+  const sql = Query().keys('apis.*', 'models.host', 'models.base_url').table('apis', 'models').where(`apis.method = '${method}'`).and('apis.is_del != 1').and('models.is_del != 1').and(`apis.path like '%${path}'`).or(`apis.path like '%${path}/'`).toEnd()
   console.log(sql)
   run(sql, callback)
 }

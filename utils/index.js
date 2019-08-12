@@ -245,14 +245,53 @@ const getValueByKeys = function(keys, values) {
   })
   return value
 }
+
+
 const isType = function(value, type) {
   if (type === 'string' || type === 'number') {
     return typeof value === type
   } else if (type === 'array') {
     return Array.isArray(value)
   } else if (type === 'object') {
-    return typeof value === 'object'
+    return typeof value === 'object' && !Array.isArray(value)
   }
+}
+// 获取随机值
+function getRangeValue(min, max) {
+  return Math.ceil(Math.random() * (max - min) + min)
+}
+// 填充字符串
+function fillWith(arr) {
+  let str = ''
+  const len = getRangeValue(arr[0], arr[1])
+  for (let i = 0; i < len; i++) {
+    str += '*'
+  }
+  return str
+}
+// 格式化mock数据
+function formatMockResult(template) {
+  const strlen = [9, 50]
+  const numlen = [100, 500]
+  const limit = 10
+  if (isType(template, 'string')) {
+    template = fillWith(strlen)
+  } else if(isType(template, 'number')) {
+    template = getRangeValue(numlen[0], numlen[1])
+  } else if(isType(template, 'object')) {
+    const keys = Object.keys(template)
+    keys.forEach(item => {
+      template[item] = formatMockResult(template[item])
+    })
+  } else if(Array.isArray(template)) {
+    const arr = []
+    for (let i = 0; i < limit; i++) {
+      const copy = JSON.parse(JSON.stringify(template[0]))
+      arr.push(formatMockResult(copy))
+    }
+    template = arr
+  }
+  return template
 }
 module.exports = {
   hash(str) {
@@ -309,6 +348,10 @@ module.exports = {
       }
     }
     return messages
+  },
+  mockDataByResult (template) {
+    template = !!template ? JSON.parse(template) : {}
+    return formatMockResult(template)
   },
   delKeys(data) {
     const keys = [...arguments].slice(1)
