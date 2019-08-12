@@ -273,7 +273,7 @@ module.exports = {
   formatUrl: function (){
     const arg = [...arguments]
     const url = arg.reduce((pre, item) => {
-      if (item === undefined) {
+      if (item === undefined  || item === null) {
         item = ''
       }
       if (pre.match(/\/+$/)) {

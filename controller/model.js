@@ -20,8 +20,15 @@ const update = function(req, res) {
     Tools.successRes(res, {model_id: result.insertId})
   })
 }
+const deleteModel = function(req, res) {
+  const {model_id} = req.body
+  dbService.updateModel(model_id, {is_del: 1}, function(result) {
+    res.json({code: 200, msg: '模块删除成功！'})
+  })
+}
 module.exports = {
   add,
   detail,
-  update
+  update,
+  deleteModel
 }

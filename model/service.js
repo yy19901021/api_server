@@ -182,10 +182,10 @@ const updateModel = function (id, data, callback) {
   console.log(sql)
   run(sql, callback)
 }
-const getModelApis = function ({model_id, limit, page}, callback) {
-  const sql = Query().keys('title', 'remark', 'method', 'path', 'api_id').table('apis').distinct().where(`model_id = ${model_id}`).and('is_del != 1').limit(limit).offset((page - 1) * limit).toEnd()
+const getModelApis = function ({model_id, limit, page, search}, callback) {
+  const sql = Query().keys('title', 'remark', 'method', 'path', 'api_id').table('apis').distinct().where(`model_id = ${model_id}`).and('is_del != 1').and(`title like '%${search}%'`).limit(limit).offset((page - 1) * limit).toEnd()
   const sql1 = Count().count().table('apis').where(`model_id = ${model_id}`).and('is_del != 1').toEnd()
-  console.log(sql, sql1)
+  console.log(sql)
   run([sql, sql1], callback)
 }
 // api添加

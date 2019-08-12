@@ -5,19 +5,22 @@ const AXIOS = require('axios')
 const process = require('process')
 const store = require('../store.js')
 const moment = require('moment')
+// 获取模块的Apis
 const modelApis = function(req, res) {
-  const {model_id, limit, page} = req.body
-  console.log(model_id, limit, page)
-  dbService.getModelApis({model_id, limit, page}, function(result) {
+  const {model_id, limit, page, search} = req.body
+  console.log(model_id, limit, page, search)
+  dbService.getModelApis({model_id, limit, page, search}, function(result) {
     const data = {}
     data.lists = result[0]
     data.total = result[1][0]['count(*)']
     Tools.successRes(res, data)
   })
 }
+// toJSON
 function jsonData(data) {
   return Object.keys(data).length > 0 ? JSON.stringify(data) : ''
 }
+// 添加或者更新API
 const addOrUpdate = function(req, res){
   const {api_id, remark, body, result, path, method, headers, model_id, params, title} = req.body
   if (api_id) {
@@ -30,14 +33,20 @@ const addOrUpdate = function(req, res){
     })
   }
 }
+// API 详情查询
 const query = function(req, res) {
   const  {api_id} = req.query
   dbService.queryApi(api_id, (result) => {
     Tools.successRes(res, result[0])
   })
 }
-
-
+// API删除接口
+const deleteApi = function(req, res) {
+  const  {api_id} = req.body
+  dbService.editApi(api_id, {"is_del": 1},(result) => {
+    res.json({code: 200, msg: '删除成功！'})
+  })
+}
 const AXIOS_INSTANCE = AXIOS.create({timeout: 5000})
 AXIOS_INSTANCE.interceptors.response.use(function (response) {
   // 对响应数据做点什么
@@ -46,6 +55,7 @@ AXIOS_INSTANCE.interceptors.response.use(function (response) {
   return Promise.reject(error);
 });
 
+// api测试队列
 class Queue {
   constructor(req) {
     this.ongoing = false
@@ -72,7 +82,7 @@ class Queue {
   }
 }
 
-
+// 单个接口测试
 const testSingle = function(req, res, next) {
   const { api_id } =  req.params
   dbService.queryApiForTest(api_id, function(data) {
@@ -113,6 +123,7 @@ const testSingle = function(req, res, next) {
     })
   })
 }
+// 测试消息存放在session里面
 function addMsgToSession(id,message) {
   store.Store.get(id, (err, session) => {
     if (!err) {
@@ -120,7 +131,7 @@ function addMsgToSession(id,message) {
     }
   })
 }
-
+// 批量测试生成请求的函数
 function handleApiRequest (data, session_id) {
   const {host = '', path='', base_url='', headers =  {}, body = {}, params = {}, result = {}, method, title, api_id,model_title, model_id, project_id} = data
   const url = Tools.formatUrl(host, base_url, path)
@@ -159,7 +170,7 @@ function handleApiRequest (data, session_id) {
     })
   }
 }
-
+// 模块批量测试
 const testModelApi = function(req, res) {
   const { model_id } =  req.params
   const queue = new Queue(res)
@@ -172,11 +183,13 @@ const testModelApi = function(req, res) {
     }
   )
 }
+// 获取测试消息的接口
 const getTestMessage = function(req, res) {
   const data = req.session.testMsg.concat([])
   req.session.testMsg = []
   res.json({code: 200, data: data})
 }
+// api单个测试接口（不保存信息）
 const sendApi = function (req, res) {
   const {body = {}, params={}, headers={}, result, method, api_url} = req.body
   console.log(params)
@@ -201,5 +214,6 @@ module.exports = {
   testSingle,
   testModelApi,
   getTestMessage,
-  sendApi
+  sendApi,
+  deleteApi
 }

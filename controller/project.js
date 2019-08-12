@@ -4,7 +4,6 @@ const CODE = require('../constant/code.js')
 const add = function(req, res) {
   const {title, description, members=[]} = req.body
   dbService.isRepeat({title: title}, 'projects', (repeat) => {
-    console.log(repeat)
     if(repeat.length === 0) {
       dbService.addProject(Object.assign({}, {title, description, created_user: req.session.user.id}), function(result) {
         const {insertId} = result

@@ -20,11 +20,13 @@ const routers = {
   "/model/apis": {method: 'post', controller: 'apis.modelApis'},
   "/model/api": {method: 'post', controller: 'apis.addOrUpdate'},
   "/model/update": {method: 'post', controller: 'model.update'},
+  "/model/delete": {method: 'post', controller: 'model.deleteModel'},
   "/model/queryApi": {method: 'get', controller: 'apis.query'},
   "/test/api/:api_id": {method: 'get', controller: 'apis.testSingle'},
   "/test/model/:model_id": {method: 'get', controller: 'apis.testModelApi'},
   "/test/message": {method: 'get', controller: 'apis.getTestMessage'},
-  "/send/api": {method: 'post', controller: 'apis.sendApi'}
+  "/send/api": {method: 'post', controller: 'apis.sendApi'},
+  "/api/delete": {method: 'post', controller: 'apis.deleteApi'}
 }
 for (const key in routers) {
   if (routers.hasOwnProperty(key)) {
