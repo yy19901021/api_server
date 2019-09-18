@@ -156,7 +156,7 @@ class Insert extends sqlFactory {
       const result = `(${keyArr.map(item => isNaN(obj[item] - 0) ||  obj[item] === '' ? `'${obj[item]}'` : obj[item]).join(', ')})`
       return result
     }
-    if (Array.isArray(params)) {
+    if (Array.isArray(params) && params.length > 0) {
       keys = Object.keys(params[0])
       values = params.map(item => formatValues(keys, item))
     } else if(typeof params === 'object') {

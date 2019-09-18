@@ -1,6 +1,9 @@
 const dbService = require('../model/service.js')
 const Tools = require('../utils')
 const CODE = require('../constant/code.js')
+const fs = require('fs')
+const path = require( "path")
+const child_process = require('child_process');
 const add = function(req, res) {
   const {title, description, members=[]} = req.body
   dbService.isRepeat({title: title}, 'projects', (repeat) => {
@@ -79,12 +82,67 @@ const detailWithModel = function(req, res) {
     Tools.successRes(res, data)
   })
 }
+const jsonFile = function(req, res) {
+  const {project_id} = req.body
+  dbService.allProApis(project_id, function(data) {
+    const row = data
+    let {project_title, project_description} = row[0]
+    const result = {title: project_title, description: project_description, modles: []}
+    const modles = {}
+    row.forEach((item) => {
+      if(!item.model_id) {
+        return
+      }
+      if (!modles[item.model_id]) {
+        modles[item.model_id] = {title: item.model_title, host: item.model_host, base_url: item.model_base_url, description: item.model_description, apis: []}
+      }
+      if (item.api_id) {
+        const  {remark, body, path, method, headers, title,  params} = item
+        modles[item.model_id].apis.push({remark, body, path, method, headers, title,  params})
+      }
+    })
+    for (const key in modles) {
+      if (modles.hasOwnProperty(key)) {
+         result.modles.push(modles[key])
+      }
+    }
+    res.append('Content-Type', 'application/octet-stream')
+    res.append('Content-Disposition', 'attachment;filename=api.json')
+    const resultStr = Buffer.from(JSON.stringify(result))
+    const write = fs.createWriteStream(path.join(__dirname, '../.temp/api.json'))
+    write.write(resultStr)
+    write.end()
+    write.on('finish', function(){
+      res.sendFile(path.join(__dirname, '../.temp/api.json'), (err) => {
+        if(!err) {
+          console.log('finish')
+        }
+      });
 
+    })
+    write.on('error', function(err){
+      console.log(err)
+    })
+    })
+}
+const importJson = function(req, res) {
+  const {file} = req.body
+  const subprocess = child_process.fork(path.join(__dirname, './importJson.js'))
+  subprocess.send({user: req.session.user.id, file})
+  subprocess.on("exit", function(code){
+    res.json({
+      code: 200,
+      msg:'上传成功'
+    })
+  })
+}
 module.exports = {
   add,
   query,
   detail,
   update,
   deletePro,
-  detailWithModel
+  detailWithModel,
+  jsonFile,
+  importJson
 }

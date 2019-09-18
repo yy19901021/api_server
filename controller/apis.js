@@ -47,7 +47,9 @@ const deleteApi = function(req, res) {
     res.json({code: 200, msg: '删除成功！'})
   })
 }
-const AXIOS_INSTANCE = AXIOS.create({timeout: 5000})
+const AXIOS_INSTANCE = AXIOS.create({timeout: 5000, headers: {
+  'Content-Type': 'application/json;charset=UTF-8'
+}})
 AXIOS_INSTANCE.interceptors.response.use(function (response) {
   // 对响应数据做点什么
   return response.data;
@@ -111,6 +113,7 @@ const testSingle = function(req, res, next) {
       data.time = moment().format('YYYY-MM-DD hh:mm:ss')
       res.json({code: 200, data: data})
     }).catch((error) => {
+      // console.log(error)
       const data = {}
       data.type = 'error'
       data.api_content = model_title + '->' + title
@@ -192,17 +195,17 @@ const getTestMessage = function(req, res) {
 // api单个测试接口（不保存信息）
 const sendApi = function (req, res) {
   const {body = {}, params={}, headers={}, result, method, api_url} = req.body
-  console.log(params)
   AXIOS_INSTANCE.request({
     url: api_url,
     method,
-    body,
+    data: body,
     params,
     headers
   }).then((data) => {
     res.json({code: 200, data})
   }).catch((error) => {
     if (error) {
+      console.log(error)
       res.json({code: 200, data: error})
     }
   })
@@ -235,6 +238,7 @@ const mockServer = function(req, res, next) {
           data:body,
           params: params,
         }).then((data) => {
+          console.log(data)
           const warnMsg = withCheck == 0 || withMock == 0 ? [] : Tools.isEqual(result, data)
           if (warnMsg.length === 0) {
             res.json({...data})

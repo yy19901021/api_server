@@ -135,12 +135,14 @@ const projectDetailWithModel = function(id, callback){
   const sql2 = Query().keys('*').table('models').where(`project_id = ${id}`).and('is_del != 1').toEnd()
   run(sql2, callback)
 }
-
+// 获取项目所有api
+const allProApis = function(id, callback) {
+  const sql = `SELECT projects.title as project_title, projects.description as project_description, models.model_id, models.title as model_title, models.host as model_host, models.base_url as model_base_url, models.description as model_description, apis.* FROM projects LEFT JOIN models as models ON (models.project_id = projects.project_id AND models.is_del != 1) LEFT JOIN apis ON (apis.model_id = models.model_id AND apis.is_del != 1) WHERE projects.project_id=${id}`
+  run(sql, callback)
+}
 // 删除项目
 const delProject = function(id, callback) {
   const sql = Update().update('is_del = 1').table('projects').where(`project_id = ${id}`).toEnd()
-  const sql2 = 
-  console.log(sql)
   run(sql, callback)
 }
 // 更新项目
@@ -151,7 +153,6 @@ const updateProject = function(id, data, members, callback) {
   console.log(sql2)
   run([sql, sql2], callback)
 }
-
 // 添加项目与人员关系
 const addRelativeforProject = function(data, callback) {
   const sql = sqlFactory.batchinset(['project_id', 'user_id'],data, 'user_project_relation')
@@ -207,13 +208,13 @@ const queryApi = function(id, callback) {
 }
 // api查询for test
 const queryApiForTest = function(id, callback) {
-  const sql = Query().keys('apis.headers', 'apis.params', 'apis.method','apis.body', 'apis.path', 'apis.result','apis.title','models.project_id','models.model_id', 'models.host', 'models.title as model_title')
+  const sql = Query().keys('apis.headers', 'apis.params', 'apis.method','apis.body', 'apis.path', 'apis.result','apis.title','models.project_id','models.model_id', 'models.host', 'models.title as model_title', 'models.base_url')
   .where(`api_id = ${id}`).and('apis.model_id = models.model_id').and('apis.is_del != 1').table('apis, models').toEnd()
   run(sql, callback)
 }
 // model api 查询
 const queryModelApiForTest = function(id, callback) {
-  const sql = Query().keys('apis.headers', 'apis.api_id','apis.params', 'apis.method','apis.body', 'apis.path', 'apis.result','apis.title','models.project_id','models.model_id', 'models.host', 'models.title as model_title')
+  const sql = Query().keys('apis.headers', 'apis.api_id','apis.params', 'apis.method','apis.body', 'apis.path', 'apis.result','apis.title','models.project_id','models.model_id', 'models.host', 'models.title as model_title', 'models.base_url')
   .where(`apis.model_id = ${id}`).and(`models.model_id = ${id}`).and('apis.is_del != 1').table('apis, models').toEnd()
   console.log(sql)
   run(sql, callback)
@@ -250,5 +251,6 @@ module.exports = {
   queryApi,
   queryApiForTest,
   queryModelApiForTest,
-  queryMockModel
+  queryMockModel,
+  allProApis
 }

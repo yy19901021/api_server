@@ -26,7 +26,9 @@ const routers = {
   "/test/model/:model_id": {method: 'get', controller: 'apis.testModelApi'},
   "/test/message": {method: 'get', controller: 'apis.getTestMessage'},
   "/send/api": {method: 'post', controller: 'apis.sendApi'},
-  "/api/delete": {method: 'post', controller: 'apis.deleteApi'}
+  "/api/delete": {method: 'post', controller: 'apis.deleteApi'},
+  "/project/json": {method: 'post', controller: 'project.jsonFile'},
+  "/project/import/json": {method: 'post', controller: 'project.importJson'}
 }
 for (const key in routers) {
   if (routers.hasOwnProperty(key)) {
