@@ -109,16 +109,20 @@ const jsonFile = function(req, res) {
     res.append('Content-Type', 'application/octet-stream')
     res.append('Content-Disposition', 'attachment;filename=api.json')
     const resultStr = Buffer.from(JSON.stringify(result))
-    const write = fs.createWriteStream(path.join(__dirname, '../.temp/api.json'))
+    const tempFile = path.join(__dirname, '../.temp/api.json')
+    const write = fs.createWriteStream(tempFile)
     write.write(resultStr)
     write.end()
     write.on('finish', function(){
-      res.sendFile(path.join(__dirname, '../.temp/api.json'), (err) => {
+      res.sendFile(tempFile, (err) => {
         if(!err) {
           console.log('finish')
+          fs.unlink(tempFile, (err) => {
+            if (err) throw err;
+            console.log('文件已删除');
+          });
         }
       });
-
     })
     write.on('error', function(err){
       console.log(err)
