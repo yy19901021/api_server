@@ -1,4 +1,4 @@
-const withoutAuth = ['/api/login', '/api/getCode']
+const withoutAuth = ['/api/login', '/api/getCode', '/api/register']
 const auth = function (req, res, next) {
   const Authorization = req.header('Authorization')
   const url = req.path
