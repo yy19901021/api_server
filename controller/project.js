@@ -131,7 +131,7 @@ const jsonFile = function(req, res) {
 }
 const importJson = function(req, res) {
   const {file} = req.body
-  const subprocess = child_process.fork(path.join(__dirname, './importJson.js'))
+  const subprocess = child_process.fork(path.join(__dirname, '../forks/importJson.js'))
   subprocess.send({user: req.session.user.id, file})
   subprocess.on("exit", function(code){
     res.json({

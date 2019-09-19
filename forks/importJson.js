@@ -1,4 +1,4 @@
-
+process.cwd()
 const dbService = require('../model/service.js')
 process.on('message', (data) => {
   const project = JSON.parse(data.file);

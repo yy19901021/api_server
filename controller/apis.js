@@ -138,7 +138,7 @@ function addMsgToSession(id,message) {
 // 模块批量测试
 const testModelApi = function(req, res) {
   const { model_id } =  req.params
-  const sub = childProcess.fork(path.join(__dirname , "./testFork.js"))
+  const sub = childProcess.fork(path.join(__dirname , "../forks/testFork.js"))
   sub.send({model_id, session_id: req.session.id})
   sub.on('error', (err) => {
     console.error('apis批量测试错误')
