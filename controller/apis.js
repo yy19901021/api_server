@@ -2,9 +2,10 @@ const dbService = require('../model/service.js')
 const CODE = require('../constant/code.js')
 const Tools = require('../utils')
 const AXIOS = require('axios')
-const process = require('process')
 const store = require('../store.js')
 const moment = require('moment')
+const childProcess = require( "child_process")
+const path = require('path')
 // 获取模块的Apis
 const modelApis = function(req, res) {
   const {model_id, limit, page, search} = req.body
@@ -57,32 +58,32 @@ AXIOS_INSTANCE.interceptors.response.use(function (response) {
   return Promise.reject(error);
 });
 
-// api测试队列
-class Queue {
-  constructor(req) {
-    this.ongoing = false
-    this.req = req
-    this.lines = []
-  }
-  appendChild(fn) {
-    this.lines.push(fn)
-  }
-  run() {
-    if (this.lines.length === 0) {
-      this.ongoing = false
-      return
-    }
-    const fn = this.lines.shift()
-    if (this.ongoing) {
-      return
-    } else {
-      fn(this.req)
-      process.nextTick(()=> {
-        this.run()
-      })
-    }
-  }
-}
+// // api测试队列
+// class Queue {
+//   constructor(req) {
+//     this.ongoing = false
+//     this.req = req
+//     this.lines = []
+//   }
+//   appendChild(fn) {
+//     this.lines.push(fn)
+//   }
+//   run() {
+//     if (this.lines.length === 0) {
+//       this.ongoing = false
+//       return
+//     }
+//     const fn = this.lines.shift()
+//     if (this.ongoing) {
+//       return
+//     } else {
+//       fn(this.req)
+//       process.nextTick(()=> {
+//         this.run()
+//       })
+//     }
+//   }
+// }
 
 // 单个接口测试
 const testSingle = function(req, res, next) {
@@ -134,57 +135,21 @@ function addMsgToSession(id,message) {
     }
   })
 }
-// 批量测试生成请求的函数
-function handleApiRequest (data, session_id) {
-  const {host = '', path='', base_url='', headers =  {}, body = {}, params = {}, result = {}, method, title, api_id,model_title, model_id, project_id} = data
-  const url = Tools.formatUrl(host, base_url, path)
-  return function () {
-    AXIOS_INSTANCE.request({
-      url,
-      method,
-      params: Tools.parseJson(params),
-      data: Tools.parseJson(body),
-      headers: Tools.parseJson(headers)
-    }).then((requestData) => {
-      const data = {}
-      data.type = 'success'
-      data.api_content = model_title + '->' + title
-      data.message = '接口调用成功'
-      data.api_id = api_id
-      data.model_id = model_id
-      data.project_id = project_id
-      const warnMsg = Tools.isEqual(result, requestData)
-      if (warnMsg.length > 0) {
-        data.type = 'warn'
-        data.message = `接口调用成功, ${warnMsg.join(';')}`
-      }
-      data.time = moment().format('YYYY-MM-DD hh:mm:ss')
-      addMsgToSession(session_id, data)
-    }).catch((error) => {
-      const data = {}
-      data.type = 'error'
-      data.api_content = model_title + '->' + title
-      data.message = '接口调用失败：' + `${error.message ? error.message : ''}`
-      data.api_id = api_id
-      data.model_id = model_id
-      data.project_id = project_id
-      data.time = moment().format('YYYY-MM-DD hh:mm:ss')
-      addMsgToSession(session_id, data)
-    })
-  }
-}
 // 模块批量测试
 const testModelApi = function(req, res) {
   const { model_id } =  req.params
-  const queue = new Queue(res)
-  dbService.queryModelApiForTest(model_id, function(data) {
-    data.forEach((item) => {
-      queue.appendChild(handleApiRequest(item, req.session.id))
-    })
-     queue.run()
-     res.json({code: 200, msg: '测试开始'})
-    }
-  )
+  const sub = childProcess.fork(path.join(__dirname , "./testFork.js"))
+  sub.send({model_id, session_id: req.session.id})
+  sub.on('error', (err) => {
+    console.error('apis批量测试错误')
+  })
+  sub.on('exit', (code) => {
+    code === 0 && console.log('apis批量完成')
+  })
+  sub.on('message', ({id, message}) => {
+    addMsgToSession(id, message)
+  })
+  res.json({code: 200, msg: '测试开始'})
 }
 // 获取测试消息的接口
 const getTestMessage = function(req, res) {
